@@ -47,4 +47,49 @@ stages:
         publishWebProjects: true
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publi
+      displayName: 'Publish Artifact'
+      inputs:
+        pathToPublish: '$(publishDir)'
+        artifactName: 'drop'
+
+
+# =========================
+# STAGE 2: DEPLOY TO IIS
+# =========================
+- stage: Deploy
+  displayName: 'Deploy to Local IIS'
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy Job'
+    pool:
+      name: 'DemoPool'   # 👈 self-hosted agent
+
+    steps:
+    - download: current
+      artifact: drop
+      displayName: 'Download Build Artifact'
+
+    - task: PowerShell@2
+      displayName: 'Stop IIS App Pool'
+      inputs:
+        targetType: 'inline'
+        script: |
+          Import-Module WebAdministration
+          Stop-WebAppPool -Name "$(appPoolName)"
+
+    - task: CopyFiles@2
+      displayName: 'Deploy Files to IIS'
+      inputs:
+        SourceFolder: '$(Pipeline.Workspace)/drop'
+        Contents: '**'
+        TargetFolder: '$(iisPath)'
+        OverWrite: true
+
+    - task: PowerShell@2
+      displayName: 'Start IIS App Pool'
+      inputs:
+        targetType: 'inline'
+        script: |
+          Import-Module WebAdministration
+          Start-WebAppPool -Name "$(appPoolName)"
