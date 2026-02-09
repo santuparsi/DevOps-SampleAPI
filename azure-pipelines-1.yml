@@ -93,3 +93,11 @@ stages:
         script: |
           Import-Module WebAdministration
           Start-WebAppPool -Name "$(appPoolName)"
+    - download: current
+      artifact: drop
+    - task: ExtractFiles@1
+      displayName: 'Extract Published Files'
+      inputs:
+       archiveFilePatterns: '$(Pipeline.Workspace)/drop/**/*.zip'
+       destinationFolder: 'C:\inetpub\AspNetCoreAPI'
+       cleanDestinationFolder: true
