@@ -12,7 +12,7 @@ namespace SampleAPI.Controllers
         {
             return new string[] { "value1", "value2" };
         }
-        [HttpGet]
+        [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
             return "value";
